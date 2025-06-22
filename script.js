@@ -9,7 +9,7 @@ window.onload = () => {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  // Tile dari Earth Engine
+  // Tile dari Earth Engine (biru)
   geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7150cf77fd5b7d4b47d78def9f563ed1-55e12cd78487575fbe4c1d6f876a398c/tiles/{z}/{x}/{y}", {
     attribution: "Google Earth Engine",
     opacity: 0.6
@@ -23,7 +23,6 @@ window.onload = () => {
       let dataKelas = {};
       const kelasUnik = [...new Set(data.features.map(f => f.properties.Kelas))];
 
-      // Warna otomatis
       const palet = ['#1a9850', '#d73027', '#91bfdb', '#fee08b', '#fc8d59', '#66bd63'];
       kelasUnik.forEach((kelas, i) => {
         warnaKelas[kelas] = palet[i % palet.length];
@@ -49,7 +48,7 @@ window.onload = () => {
 
       map.fitBounds(geojsonLayer.getBounds());
       buatChart(dataKelas);
-      tambahLegend(dataKelas);
+      tambahLegend();  // ← pakai warna biru tile GEE
       window.downloadCSV = () => exportCSV(dataKelas);
     });
 
@@ -98,20 +97,19 @@ window.onload = () => {
     document.body.removeChild(a);
   }
 
-  function tambahLegend(dataKelas) {
+  // ✅ Legend tile GEE biru
+  function tambahLegend() {
     const legend = L.control({ position: "bottomright" });
     legend.onAdd = function () {
       const div = L.DomUtil.create("div", "legend");
       div.innerHTML = "<strong>Legenda</strong><br>";
-      for (const k in dataKelas) {
-        const warna = warnaKelas[k] || "#ccc";
-        div.innerHTML += `<i style="background:${warna}"></i> ${k}<br>`;
-      }
+      div.innerHTML += `<i style="background:#4575b4"></i> Potensi Irigasi<br>`;
       return div;
     };
     legend.addTo(map);
   }
 
+  // Toggle layer GeoJSON dan Tile GEE
   window.toggleLayer = function (layerName) {
     if (layerName === "geojson") {
       const btn = document.getElementById("toggleGeojson");
