@@ -1,30 +1,219 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <title>Peta Potensi Irigasi Solok Selatan</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- PapaParse for CSV Export -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js"></script>
+
   <style>
-    #map { height: 100vh; margin: 0; }
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    #map {
+      width: 100%;
+      height: 60vh;
+    }
+
+    #controls {
+      padding: 10px;
+      background: #f8f8f8;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    #chartContainer {
+      width: 100%;
+      padding: 10px;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
     .legend {
       background: white;
-      padding: 8px;
-      font-size: 12px;
-      position: absolute;
-      bottom: 20px;
-      left: 10px;
-      border: 1px solid #ccc;
+      padding: 10px;
+      line-height: 18px;
+      color: #333;
+      border-radius: 4px;
+    }
+
+    .legend i {
+      width: 18px;
+      height: 18px;
+      float: left;
+      margin-right: 8px;
+      opacity: 0.8;
+      background: #000;
+    }
+
+    button {
+      margin-right: 8px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
+
   <div id="map"></div>
-  <div class="legend">
-    <b>Legenda:</b><br>
-    <span style="color:blue;">■</span> Potensi Irigasi
+
+  <div id="controls">
+    <button onclick="toggleLayer('geojson')">Tampilkan/Sembunyikan GeoJSON</button>
+    <button onclick="toggleLayer('tile')">Tampilkan/Sembunyikan Tile</button>
+    <button onclick="downloadCSV()">Download CSV</button>
   </div>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="script.js"></script>
+
+  <div id="chartContainer">
+    <canvas id="chart" height="200"></canvas>
+  </div>
+
+  <script>
+    window.onload = () => {
+      const map = L.map('map').setView([-1.5785, 101.3123], 12);
+
+      let geojsonLayer = null;
+      let geeTileLayer = null;
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(map);
+
+      // Tile dari GEE
+      geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/c185eaed844ee168dc99d51c8ac536c6-922d7e63267b033c27c24c60af7b5eb0/tiles/{z}/{x}/{y}", {
+        attribution: "Google Earth Engine",
+        opacity: 0.6
+      }).addTo(map);
+
+      const warnaKelas = {
+        "Potensial": "#1a9850",
+        "Tidak Potensial": "#d73027"
+      };
+
+      const geojsonURL = "https://raw.githubusercontent.com/ridhoarazzak/Irigasi/main/potensi_irigasi_filtered.geojson";
+
+      fetch(geojsonURL)
+        .then(res => res.json())
+        .then(data => {
+          let dataKelas = {};
+
+          geojsonLayer = L.geoJSON(data, {
+            style: f => {
+              const k = f.properties.Kelas || "Lainnya";
+              return {
+                color: warnaKelas[k] || "#888",
+                fillColor: warnaKelas[k] || "#888",
+                weight: 1,
+                fillOpacity: 0.4
+              };
+            },
+            onEachFeature: (feature, layer) => {
+              const k = feature.properties.Kelas || "Lainnya";
+              const luas = feature.properties["Luas (ha)"] || 0;
+              dataKelas[k] = (dataKelas[k] || 0) + luas;
+              layer.bindPopup(`<b style="color:${warnaKelas[k] || "#000"}">${k}</b><br>Luas: ${luas.toFixed(2)} ha`);
+            }
+          }).addTo(map);
+
+          map.fitBounds(geojsonLayer.getBounds());
+          buatChart(dataKelas);
+          tambahLegend();
+          window.downloadCSV = () => exportCSV(dataKelas);
+        })
+        .catch(err => {
+          console.error("Gagal ambil GeoJSON:", err);
+          alert("Gagal memuat data GeoJSON.");
+        });
+
+      function buatChart(data) {
+        const labels = Object.keys(data);
+        const values = labels.map(k => data[k]);
+        const colors = labels.map(k => warnaKelas[k] || "#888");
+
+        const ctx = document.getElementById('chart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Luas (ha)',
+              data: values,
+              backgroundColor: colors
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              title: {
+                display: true,
+                text: 'Luas Potensi Irigasi (ha)'
+              }
+            }
+          }
+        });
+      }
+
+      function exportCSV(data) {
+        const rows = [["Kelas", "Luas (ha)"]];
+        for (const [k, v] of Object.entries(data)) {
+          rows.push([k, v.toFixed(2)]);
+        }
+        const csv = Papa.unparse(rows);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.setAttribute("download", "potensi_irigasi.csv");
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      function tambahLegend() {
+        const legend = L.control({ position: "bottomright" });
+        legend.onAdd = function () {
+          const div = L.DomUtil.create("div", "legend");
+          div.innerHTML = "<strong>Legenda</strong><br>";
+          for (const [k, warna] of Object.entries(warnaKelas)) {
+            div.innerHTML += `<i style="background:${warna}"></i> ${k}<br>`;
+          }
+          return div;
+        };
+        legend.addTo(map);
+      }
+
+      window.toggleLayer = function (layerName) {
+        if (layerName === "geojson") {
+          if (map.hasLayer(geojsonLayer)) {
+            map.removeLayer(geojsonLayer);
+          } else {
+            map.addLayer(geojsonLayer);
+          }
+        } else if (layerName === "tile") {
+          if (map.hasLayer(geeTileLayer)) {
+            map.removeLayer(geeTileLayer);
+          } else {
+            map.addLayer(geeTileLayer);
+          }
+        }
+      };
+    };
+  </script>
+
 </body>
-    </html>
+  </html>
