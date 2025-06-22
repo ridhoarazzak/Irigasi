@@ -4,18 +4,16 @@ window.onload = () => {
   let geojsonLayer = null;
   let geeTileLayer = null;
 
-  // Basemap
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  // Tile dari Earth Engine
-  geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/c185eaed844ee168dc99d51c8ac536c6-922d7e63267b033c27c24c60af7b5eb0/tiles/{z}/{x}/{y}", {
+  // ✅ TILE PERMANEN KAMU
+  geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/projects/ee-mrgridhoarazzak/maps/2f58526d53ee7fcb24a10b23250e985a-55d0703ed48f7019d9cb685d9349aa23/tiles/{z}/{x}/{y}", {
     attribution: "Google Earth Engine",
     opacity: 0.6
   }).addTo(map);
 
-  // Warna sesuai klasifikasi irigasi
   const warnaKelas = {
     "Potensial": "#1a9850",
     "Tidak Potensial": "#d73027"
@@ -50,10 +48,6 @@ window.onload = () => {
       buatChart(dataKelas);
       tambahLegend();
       window.downloadCSV = () => exportCSV(dataKelas);
-    })
-    .catch(err => {
-      console.error("Gagal memuat GeoJSON:", err);
-      alert("Data potensi irigasi gagal dimuat.");
     });
 
   function buatChart(data) {
