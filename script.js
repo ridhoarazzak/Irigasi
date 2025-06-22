@@ -4,22 +4,19 @@ window.onload = () => {
   let geojsonLayer = null;
   let geeTileLayer = null;
 
-  // 🌍 Basemap
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
-
-  // 🟩 Tile dari Earth Engine
-  geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7150cf77fd5b7d4b47d78def9f563ed1-55e12cd78487575fbe4c1d6f876a398c/tiles/{z}/{x}/{y}", {
-    attribution: "Google Earth Engine",
-    opacity: 0.6
-  }).addTo(map);
-
-  // 🎨 Warna tiap kelas
   const warnaKelas = {
     "Potensial": "#1a9850",
     "Tidak Potensial": "#d73027"
   };
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7150cf77fd5b7d4b47d78def9f563ed1-55e12cd78487575fbe4c1d6f876a398c/tiles/{z}/{x}/{y}", {
+    attribution: "Google Earth Engine",
+    opacity: 0.6
+  }).addTo(map);
 
   const geojsonURL = "https://raw.githubusercontent.com/ridhoarazzak/Irigasi/main/potensi_irigasi_filtered.geojson";
 
@@ -32,10 +29,10 @@ window.onload = () => {
         style: f => {
           const k = f.properties.Kelas || "Lainnya";
           return {
-            color: warnaKelas[k] || "#888",
+            color: "#000",
             fillColor: warnaKelas[k] || "#888",
-            weight: 1,
-            fillOpacity: 0.4
+            weight: 1.5,
+            fillOpacity: 0.5
           };
         },
         onEachFeature: (feature, layer) => {
@@ -112,16 +109,22 @@ window.onload = () => {
 
   window.toggleLayer = function (layerName) {
     if (layerName === "geojson") {
+      const btn = document.getElementById("toggleGeojson");
       if (map.hasLayer(geojsonLayer)) {
         map.removeLayer(geojsonLayer);
+        btn.textContent = "Tampilkan GeoJSON";
       } else {
         map.addLayer(geojsonLayer);
+        btn.textContent = "Matikan GeoJSON";
       }
     } else if (layerName === "tile") {
+      const btn = document.getElementById("toggleTile");
       if (map.hasLayer(geeTileLayer)) {
         map.removeLayer(geeTileLayer);
+        btn.textContent = "Tampilkan Tile GEE";
       } else {
         map.addLayer(geeTileLayer);
+        btn.textContent = "Matikan Tile GEE";
       }
     }
   };
