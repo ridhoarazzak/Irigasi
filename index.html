@@ -1,59 +1,109 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Peta Potensi Irigasi Solok Selatan</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <meta charset="UTF-8">
+  <title>Peta Potensi Irigasi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <style>
-    body { margin: 0; font-family: sans-serif; }
-    h1 {
-      text-align: center;
-      margin: 1em 0 0.5em;
-      font-size: 24px;
-      color: #2c3e50;
-    }
-    #map { height: 70vh; width: 100%; }
-    #chart-container { width: 90%; margin: 1em auto; }
+    body { margin: 0; font-family: Arial, sans-serif; }
+    #map { height: 100vh; }
+
     .legend {
       background: white;
       padding: 10px;
-      font-size: 14px;
-      line-height: 1.5em;
+      line-height: 1.5;
+      color: #333;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
     }
+
     .legend i {
-      width: 18px;
-      height: 18px;
+      width: 14px;
+      height: 14px;
       float: left;
       margin-right: 8px;
-      opacity: 0.7;
-    }
-    button {
-      margin: 10px;
-      padding: 8px 16px;
-      font-size: 14px;
-      cursor: pointer;
+      opacity: 0.8;
     }
   </style>
 </head>
 <body>
-
-  <h1>Peta Potensi Irigasi Solok Selatan</h1>
   <div id="map"></div>
 
-  <div id="chart-container">
-    <canvas id="chart"></canvas>
-    <div style="text-align:center;">
-      <button onclick="window.downloadCSV()">Download CSV</button>
-      <button id="toggleGeojson" onclick="toggleLayer('geojson')">Matikan GeoJSON</button>
-      <button id="toggleTile" onclick="toggleLayer('tile')">Matikan Tile GEE</button>
-    </div>
-  </div>
-
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
-  <script src="script.js"></script>
+  <script>
+    const map = L.map('map').setView([-1.487, 101.3], 11);
 
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Warna untuk setiap kategori (disesuaikan dengan nilai unik pada properti geojson)
+    const categoryColors = {
+      "Potensial": "#2ecc71",
+      "Tidak Potensial": "#e74c3c"
+      // Tambahkan otomatis di bawah kalau kategori lain muncul
+    };
+
+    function getColor(kategori) {
+      return categoryColors[kategori] || "#95a5a6"; // default abu-abu
+    }
+
+    function style(feature) {
+      const kategori = feature.properties.kategori || "Lainnya";
+      return {
+        color: getColor(kategori),
+        weight: 1,
+        fillOpacity: 0.6
+      };
+    }
+
+    fetch('https://raw.githubusercontent.com/ridhoarazzak/Irigasi/main/potensi_irigasi_filtered.geojson')
+      .then(res => res.json())
+      .then(data => {
+        // Ambil semua kategori unik dari properti
+        const categories = new Set();
+        data.features.forEach(f => {
+          const cat = f.properties.kategori;
+          if (cat && !(cat in categoryColors)) {
+            categoryColors[cat] = getRandomColor(); // Tambahkan warna jika belum ada
+          }
+          if (cat) categories.add(cat);
+        });
+
+        L.geoJSON(data, {
+          style: style,
+          onEachFeature: (feature, layer) => {
+            layer.bindPopup(`Kategori: ${feature.properties.kategori}`);
+          }
+        }).addTo(map);
+
+        addLegend(categories);
+      });
+
+    function addLegend(categories) {
+      const legend = L.control({position: 'bottomright'});
+      legend.onAdd = function () {
+        const div = L.DomUtil.create('div', 'legend');
+        div.innerHTML = '<strong>Potensi Irigasi</strong><br>';
+        categories.forEach(cat => {
+          const color = getColor(cat);
+          div.innerHTML += `<i style="background:${color}"></i> ${cat}<br>`;
+        });
+        return div;
+      };
+      legend.addTo(map);
+    }
+
+    // Fungsi untuk warna acak jika kategori belum didefinisikan
+    function getRandomColor() {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+  </script>
 </body>
 </html>
