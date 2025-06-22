@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Peta Potensi Irigasi Solok Selatan</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -12,7 +12,7 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- PapaParse for CSV Export -->
+  <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js"></script>
 
   <style>
@@ -30,12 +30,10 @@
 
     #controls {
       padding: 10px;
-      background: #f8f8f8;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      background: #f0f0f0;
     }
 
     #chartContainer {
-      width: 100%;
       padding: 10px;
     }
 
@@ -93,12 +91,13 @@
         attribution: '© OpenStreetMap'
       }).addTo(map);
 
-      // Tile dari GEE
-      geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/c185eaed844ee168dc99d51c8ac536c6-922d7e63267b033c27c24c60af7b5eb0/tiles/{z}/{x}/{y}", {
+      // ✅ TILE PERMANEN DARI KAMU
+      geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/projects/ee-mrgridhoarazzak/maps/2f58526d53ee7fcb24a10b23250e985a-55d0703ed48f7019d9cb685d9349aa23/tiles/{z}/{x}/{y}", {
         attribution: "Google Earth Engine",
         opacity: 0.6
       }).addTo(map);
 
+      // Warna untuk kelas lahan
       const warnaKelas = {
         "Potensial": "#1a9850",
         "Tidak Potensial": "#d73027"
@@ -133,10 +132,6 @@
           buatChart(dataKelas);
           tambahLegend();
           window.downloadCSV = () => exportCSV(dataKelas);
-        })
-        .catch(err => {
-          console.error("Gagal ambil GeoJSON:", err);
-          alert("Gagal memuat data GeoJSON.");
         });
 
       function buatChart(data) {
@@ -214,6 +209,5 @@
       };
     };
   </script>
-
 </body>
-  </html>
+</html>
