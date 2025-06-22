@@ -3,13 +3,26 @@ window.onload = () => {
   let geojsonLayer = null;
   let geeTileLayer = null;
   let warnaKelas = {};
+  const warnaTile = "#4a90e2"; // biru GEE tile
 
-  // Basemap
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // Basemap: OpenStreetMap
+  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  // Tile dari Earth Engine (biru)
+  // Basemap: Esri World Imagery
+  const esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © Esri'
+  });
+
+  // Control untuk memilih basemap
+  const baseMaps = {
+    "OpenStreetMap": osm,
+    "Esri Satelit": esri
+  };
+  L.control.layers(baseMaps, null, { position: "topright", collapsed: true }).addTo(map);
+
+  // Tile dari Earth Engine
   geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7150cf77fd5b7d4b47d78def9f563ed1-55e12cd78487575fbe4c1d6f876a398c/tiles/{z}/{x}/{y}", {
     attribution: "Google Earth Engine",
     opacity: 0.6
@@ -22,9 +35,8 @@ window.onload = () => {
     .then(data => {
       let dataKelas = {};
       const kelasUnik = [...new Set(data.features.map(f => f.properties.potensial))];
-
-      // Palet warna otomatis
       const palet = ['#1a9850', '#d73027', '#91bfdb', '#fee08b', '#fc8d59', '#66bd63'];
+
       kelasUnik.forEach((kelas, i) => {
         warnaKelas[kelas] = palet[i % palet.length];
       });
@@ -42,10 +54,8 @@ window.onload = () => {
         onEachFeature: (feature, layer) => {
           const k = feature.properties.potensial;
           let luas = 0;
-
-          // Hitung luas jika tidak tersedia
           try {
-            luas = turf.area(feature) / 10000; // dari m² ke ha
+            luas = turf.area(feature) / 10000;
           } catch (e) {
             luas = 0;
           }
@@ -116,6 +126,7 @@ window.onload = () => {
     legend.onAdd = function () {
       const div = L.DomUtil.create("div", "legend");
       div.innerHTML = "<strong>Legenda</strong><br>";
+      div.innerHTML += `<i style="background:${warnaTile}"></i> Tile GEE: Potensial Irigasi<br>`;
       for (const k in dataKelas) {
         const warna = warnaKelas[k] || "#ccc";
         div.innerHTML += `<i style="background:${warna}"></i> ${k}<br>`;
