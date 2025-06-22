@@ -1,28 +1,45 @@
 window.onload = () => {
   const map = L.map('map').setView([-1.5785, 101.3123], 12);
   let geojsonLayer = null, geeTileLayer = null, warnaKelas = {};
-  const warnaTile = "#4a90e2"; // biru tile GEE
+  const warnaTile = "#4a90e2";
 
-  // Basemaps
+  // === ✅ BASEMAPS ===
   const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
-  }).addTo(map);
+  });
+
+  const opentopo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenTopoMap'
+  });
 
   const esri = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     { attribution: 'Tiles © Esri' }
   );
 
-  const baseMaps = { "OpenStreetMap": osm, "Esri Satelit": esri };
-  L.control.layers(baseMaps, null, { position: 'topright', collapsed: false }).addTo(map);
+  // Tambahkan OSM sebagai default
+  osm.addTo(map);
 
-  // ✅ Overlay: Tile Earth Engine (pakai URL terbaru)
+  // === ✅ TILE EARTH ENGINE ===
   geeTileLayer = L.tileLayer(
-    "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/58379782594a8ab31b03a104676c7731-d2ebcfd78ebe7a25288c8302f99b7ae0/tiles/{z}/{x}/{y}",
+    "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7150cf77fd5b7d4b47d78def9f563ed1-3206baa4cda700486aff3dd05a3aa9ba/tiles/{z}/{x}/{y}",
     { attribution: "Google Earth Engine", opacity: 0.6 }
   ).addTo(map);
 
-  // Load GeoJSON
+  // === ✅ LAYER CONTROL ===
+  const baseMaps = {
+    "OpenStreetMap": osm,
+    "OpenTopoMap": opentopo,
+    "Esri Satelit": esri
+  };
+
+  const overlayMaps = {
+    "Potensi Irigasi (Tile GEE)": geeTileLayer
+  };
+
+  L.control.layers(baseMaps, overlayMaps, { position: 'topright', collapsed: false }).addTo(map);
+
+  // === ✅ LOAD GEOJSON ===
   fetch("https://raw.githubusercontent.com/ridhoarazzak/Irigasi/main/potensi_irigasi_filtered.geojson")
     .then(r => r.json())
     .then(data => {
@@ -50,7 +67,7 @@ window.onload = () => {
       window.downloadCSV = () => exportCSV(dataKelas);
     });
 
-  // Chart
+  // === ✅ CHART ===
   function buatChart(data) {
     const labels = Object.keys(data),
           values = labels.map(k=>data[k]),
@@ -63,7 +80,7 @@ window.onload = () => {
     });
   }
 
-  // CSV Export
+  // === ✅ CSV EXPORT ===
   function exportCSV(data) {
     const rows=[["Kategori","Luas (ha)"]];
     for(const k in data){
@@ -75,7 +92,7 @@ window.onload = () => {
     a.download="potensi_irigasi.csv"; document.body.appendChild(a); a.click(); a.remove();
   }
 
-  // Legend gabungan
+  // === ✅ LEGEND ===
   function tambahLegend(dataKelas) {
     L.control({position:'bottomright'}).onAdd = () => {
       const div=L.DomUtil.create('div','legend');
@@ -88,7 +105,7 @@ window.onload = () => {
     }.addTo(map);
   }
 
-  // Toggle overlay
+  // === ✅ TOGGLE LAYER MANUAL (masih bisa pakai tombol) ===
   window.toggleLayer = name => {
     const btn = name==='geojson'? 'toggleGeojson' : 'toggleTile';
     const layer = name==='geojson'? geojsonLayer : geeTileLayer;
