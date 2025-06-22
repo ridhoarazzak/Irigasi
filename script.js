@@ -1,9 +1,9 @@
 window.onload = () => {
   const map = L.map('map').setView([-1.5785, 101.3123], 12);
   let geojsonLayer = null, geeTileLayer = null, warnaKelas = {};
-  const warnaTile = "#4a90e2"; // Warna tile GEE di legenda
+  const warnaTile = "#4a90e2";
 
-  // === Basemaps ===
+  // Basemaps
   const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
   });
@@ -13,12 +13,11 @@ window.onload = () => {
     { attribution: 'Tiles © Esri' }
   );
 
-  // Tambahkan default basemap
   esri.addTo(map);
 
-  // === Tile dari GEE ===
+  // Tile GEE yang baru (update di sini)
   geeTileLayer = L.tileLayer(
-    "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/05a638fcb57a4b06009185cd85a18483-1925d23b82aef2540dfd6a99105cd764/tiles/{z}/{x}/{y}",
+    "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/05a638fcb57a4b06009185cd85a18483-36392db707b96e5d1ecce608e92711fa/tiles/{z}/{x}/{y}",
     {
       attribution: "Google Earth Engine",
       opacity: 0.6,
@@ -26,7 +25,6 @@ window.onload = () => {
     }
   ).addTo(map);
 
-  // === Layer Control ===
   const baseMaps = {
     "OpenStreetMap": osm,
     "Esri Satelit": esri
@@ -41,7 +39,7 @@ window.onload = () => {
     collapsed: false
   }).addTo(map);
 
-  // === Load GeoJSON ===
+  // GeoJSON
   fetch("https://raw.githubusercontent.com/ridhoarazzak/Irigasi/main/potensi_irigasi_filtered.geojson")
     .then(r => r.json())
     .then(data => {
@@ -69,7 +67,6 @@ window.onload = () => {
       window.downloadCSV = () => exportCSV(dataKelas);
     });
 
-  // === Chart ===
   function buatChart(data) {
     const labels = Object.keys(data),
           values = labels.map(k=>data[k]),
@@ -82,7 +79,6 @@ window.onload = () => {
     });
   }
 
-  // === CSV Export ===
   function exportCSV(data) {
     const rows=[["Kategori","Luas (ha)"]];
     for(const k in data){
@@ -94,7 +90,6 @@ window.onload = () => {
     a.download="potensi_irigasi.csv"; document.body.appendChild(a); a.click(); a.remove();
   }
 
-  // === Legend ===
   function tambahLegend(dataKelas) {
     L.control({position:'bottomright'}).onAdd = () => {
       const div=L.DomUtil.create('div','legend');
@@ -107,7 +102,6 @@ window.onload = () => {
     }.addTo(map);
   }
 
-  // === Toggle Layer Manual ===
   window.toggleLayer = name => {
     const btn = name==='geojson'? 'toggleGeojson' : 'toggleTile';
     const layer = name==='geojson'? geojsonLayer : geeTileLayer;
