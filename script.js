@@ -4,16 +4,18 @@ window.onload = () => {
   let geojsonLayer = null;
   let geeTileLayer = null;
 
+  // 🌍 Basemap
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  // ✅ TILE PERMANEN KAMU
-  geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/projects/ee-mrgridhoarazzak/maps/2f58526d53ee7fcb24a10b23250e985a-55d0703ed48f7019d9cb685d9349aa23/tiles/{z}/{x}/{y}", {
+  // 🟩 Tile dari Earth Engine
+  geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7150cf77fd5b7d4b47d78def9f563ed1-55e12cd78487575fbe4c1d6f876a398c/tiles/{z}/{x}/{y}", {
     attribution: "Google Earth Engine",
     opacity: 0.6
   }).addTo(map);
 
+  // 🎨 Warna tiap kelas
   const warnaKelas = {
     "Potensial": "#1a9850",
     "Tidak Potensial": "#d73027"
