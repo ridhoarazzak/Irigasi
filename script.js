@@ -21,8 +21,9 @@ window.onload = () => {
     .then(res => res.json())
     .then(data => {
       let dataKelas = {};
-      const kelasUnik = [...new Set(data.features.map(f => f.properties.Kelas))];
+      const kelasUnik = [...new Set(data.features.map(f => f.properties.potensial))];
 
+      // Palet warna otomatis
       const palet = ['#1a9850', '#d73027', '#91bfdb', '#fee08b', '#fc8d59', '#66bd63'];
       kelasUnik.forEach((kelas, i) => {
         warnaKelas[kelas] = palet[i % palet.length];
@@ -30,7 +31,7 @@ window.onload = () => {
 
       geojsonLayer = L.geoJSON(data, {
         style: f => {
-          const k = f.properties.Kelas;
+          const k = f.properties.potensial;
           return {
             color: "#000",
             fillColor: warnaKelas[k] || "#ccc",
@@ -39,8 +40,16 @@ window.onload = () => {
           };
         },
         onEachFeature: (feature, layer) => {
-          const k = feature.properties.Kelas;
-          const luas = feature.properties["Luas (ha)"] || 0;
+          const k = feature.properties.potensial;
+          let luas = 0;
+
+          // Hitung luas jika tidak tersedia
+          try {
+            luas = turf.area(feature) / 10000; // dari m² ke ha
+          } catch (e) {
+            luas = 0;
+          }
+
           dataKelas[k] = (dataKelas[k] || 0) + luas;
           layer.bindPopup(`<b style="color:${warnaKelas[k] || "#000"}">${k}</b><br>Luas: ${luas.toFixed(2)} ha`);
         }
@@ -48,7 +57,7 @@ window.onload = () => {
 
       map.fitBounds(geojsonLayer.getBounds());
       buatChart(dataKelas);
-      tambahLegend();  // ← pakai warna biru tile GEE
+      tambahLegend(dataKelas);
       window.downloadCSV = () => exportCSV(dataKelas);
     });
 
@@ -82,9 +91,14 @@ window.onload = () => {
   }
 
   function exportCSV(data) {
-    const rows = [["Kelas", "Luas (ha)"]];
+    const rows = [["Kategori Potensial", "Luas (ha)"]];
     for (const [k, v] of Object.entries(data)) {
+      if (!k || isNaN(v)) continue;
       rows.push([k, v.toFixed(2)]);
+    }
+    if (rows.length === 1) {
+      alert("Data kosong atau tidak valid untuk diekspor.");
+      return;
     }
     const csv = Papa.unparse(rows);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -97,19 +111,20 @@ window.onload = () => {
     document.body.removeChild(a);
   }
 
-  // ✅ Legend tile GEE biru
-  function tambahLegend() {
+  function tambahLegend(dataKelas) {
     const legend = L.control({ position: "bottomright" });
     legend.onAdd = function () {
       const div = L.DomUtil.create("div", "legend");
       div.innerHTML = "<strong>Legenda</strong><br>";
-      div.innerHTML += `<i style="background:#4575b4"></i> Potensi Irigasi<br>`;
+      for (const k in dataKelas) {
+        const warna = warnaKelas[k] || "#ccc";
+        div.innerHTML += `<i style="background:${warna}"></i> ${k}<br>`;
+      }
       return div;
     };
     legend.addTo(map);
   }
 
-  // Toggle layer GeoJSON dan Tile GEE
   window.toggleLayer = function (layerName) {
     if (layerName === "geojson") {
       const btn = document.getElementById("toggleGeojson");
