@@ -1,18 +1,15 @@
 window.onload = () => {
   const map = L.map('map').setView([-1.5785, 101.3123], 12);
-
   let geojsonLayer = null;
   let geeTileLayer = null;
+  let warnaKelas = {};
 
-  const warnaKelas = {
-    "Potensial": "#1a9850",
-    "Tidak Potensial": "#d73027"
-  };
-
+  // Basemap
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
+  // Tile dari Earth Engine
   geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7150cf77fd5b7d4b47d78def9f563ed1-55e12cd78487575fbe4c1d6f876a398c/tiles/{z}/{x}/{y}", {
     attribution: "Google Earth Engine",
     opacity: 0.6
@@ -24,19 +21,26 @@ window.onload = () => {
     .then(res => res.json())
     .then(data => {
       let dataKelas = {};
+      const kelasUnik = [...new Set(data.features.map(f => f.properties.Kelas))];
+
+      // Warna otomatis
+      const palet = ['#1a9850', '#d73027', '#91bfdb', '#fee08b', '#fc8d59', '#66bd63'];
+      kelasUnik.forEach((kelas, i) => {
+        warnaKelas[kelas] = palet[i % palet.length];
+      });
 
       geojsonLayer = L.geoJSON(data, {
         style: f => {
-          const k = f.properties.Kelas || "Lainnya";
+          const k = f.properties.Kelas;
           return {
             color: "#000",
-            fillColor: warnaKelas[k] || "#888",
-            weight: 1.5,
+            fillColor: warnaKelas[k] || "#ccc",
+            weight: 1.2,
             fillOpacity: 0.5
           };
         },
         onEachFeature: (feature, layer) => {
-          const k = feature.properties.Kelas || "Lainnya";
+          const k = feature.properties.Kelas;
           const luas = feature.properties["Luas (ha)"] || 0;
           dataKelas[k] = (dataKelas[k] || 0) + luas;
           layer.bindPopup(`<b style="color:${warnaKelas[k] || "#000"}">${k}</b><br>Luas: ${luas.toFixed(2)} ha`);
@@ -45,7 +49,7 @@ window.onload = () => {
 
       map.fitBounds(geojsonLayer.getBounds());
       buatChart(dataKelas);
-      tambahLegend();
+      tambahLegend(dataKelas);
       window.downloadCSV = () => exportCSV(dataKelas);
     });
 
@@ -94,12 +98,13 @@ window.onload = () => {
     document.body.removeChild(a);
   }
 
-  function tambahLegend() {
+  function tambahLegend(dataKelas) {
     const legend = L.control({ position: "bottomright" });
     legend.onAdd = function () {
       const div = L.DomUtil.create("div", "legend");
       div.innerHTML = "<strong>Legenda</strong><br>";
-      for (const [k, warna] of Object.entries(warnaKelas)) {
+      for (const k in dataKelas) {
+        const warna = warnaKelas[k] || "#ccc";
         div.innerHTML += `<i style="background:${warna}"></i> ${k}<br>`;
       }
       return div;
