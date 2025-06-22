@@ -13,13 +13,17 @@ window.onload = () => {
     { attribution: 'Tiles © Esri' }
   );
 
-  // Tambahkan default basemap (OSM atau Esri)
+  // Tambahkan default basemap
   esri.addTo(map);
 
-  // === Tile dari GEE (yang SUDAH MUNCUL) ===
+  // === Tile dari GEE ===
   geeTileLayer = L.tileLayer(
-    "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/d448e6ca67382931bad0639bedad8e79-2c795e92b59d3604e8036f7d633939f9/tiles/{z}/{x}/{y}",
-    { attribution: "Google Earth Engine", opacity: 0.6 }
+    "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/05a638fcb57a4b06009185cd85a18483-1925d23b82aef2540dfd6a99105cd764/tiles/{z}/{x}/{y}",
+    {
+      attribution: "Google Earth Engine",
+      opacity: 0.6,
+      zIndex: 500
+    }
   ).addTo(map);
 
   // === Layer Control ===
@@ -103,7 +107,7 @@ window.onload = () => {
     }.addTo(map);
   }
 
-  // === Toggle GeoJSON dan Tile ===
+  // === Toggle Layer Manual ===
   window.toggleLayer = name => {
     const btn = name==='geojson'? 'toggleGeojson' : 'toggleTile';
     const layer = name==='geojson'? geojsonLayer : geeTileLayer;
