@@ -16,9 +16,9 @@ window.onload = () => {
   const baseMaps = { "OpenStreetMap": osm, "Esri Satelit": esri };
   L.control.layers(baseMaps, null, { position: 'topright', collapsed: false }).addTo(map);
 
-  // Overlay: Tile Earth Engine (transparan)
+  // ✅ Overlay: Tile Earth Engine (update URL baru)
   geeTileLayer = L.tileLayer(
-    "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7150cf77fd5b7d4b47d78def9f563ed1-55e12cd78487575fbe4c1d6f876a398c/tiles/{z}/{x}/{y}",
+    "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/58379782594a8ab31b03a104676c7731-d2ebcfd78ebe7a25288c8302f99b7ae0/tiles/{z}/{x}/{y}",
     { attribution: "Google Earth Engine", opacity: 0.6 }
   ).addTo(map);
 
