@@ -10,7 +10,7 @@ window.onload = () => {
   ).addTo(map);
 
   // Tile dari Earth Engine
-  const geeTileUrl = "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/f7817adcbff8fe1ca9831d8844213532-8eb5ddc353e4f67c0042c179ee819d06/tiles/{z}/{x}/{y}";
+  const geeTileUrl = "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/f7817adcbff8fe1ca9831d8844213532-3b8a4784ed3a127a6ad5b53e149b1a03/tiles/{z}/{x}/{y}";
 
   const geeLayer = L.tileLayer(geeTileUrl, {
     attribution: "Data: Google Earth Engine",
