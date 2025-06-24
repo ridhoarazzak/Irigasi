@@ -7,15 +7,15 @@ window.onload = () => {
     { attribution: '© Esri' }
   ).addTo(map);
 
-  // Tile dari GEE (biru transparan)
-  const geeTileUrl = "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7e20cbfd7604b78aac9a323e05b86841-b3c48b9ff0fb7ae570c0b304f6b31d4d/tiles/{z}/{x}/{y}";
+  // Tile GEE (dari URL terbaru dan publik)
+  const geeTileUrl = "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7e20cbfd7604b78aac9a323e05b86841-f3d5ed50aef7df008eab6d7b99bebfde/tiles/{z}/{x}/{y}";
 
   const geeLayer = L.tileLayer(geeTileUrl, {
     attribution: "Google Earth Engine",
     opacity: 0.5
   }).addTo(map);
 
-  // Legenda sederhana
+  // Legenda
   L.control({ position: 'bottomright' }).onAdd = () => {
     const div = L.DomUtil.create('div', 'legend');
     div.innerHTML = `
