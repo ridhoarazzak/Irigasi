@@ -8,7 +8,7 @@ window.onload = () => {
   ).addTo(map);
 
   // Tile dari GEE (biru transparan)
-  const geeTileUrl = "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7e20cbfd7604b78aac9a323e05b86841-2376b4c77de893842a04e143533704b2/tiles/{z}/{x}/{y}";
+  const geeTileUrl = "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7e20cbfd7604b78aac9a323e05b86841-b3c48b9ff0fb7ae570c0b304f6b31d4d/tiles/{z}/{x}/{y}";
 
   const geeLayer = L.tileLayer(geeTileUrl, {
     attribution: "Google Earth Engine",
