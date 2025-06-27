@@ -1,30 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <meta charset="utf-8">
-  <title>Peta Potensi Irigasi</title>
+  <meta charset="UTF-8">
+  <title>Potensi Irigasi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
   <style>
-    html, body, #map { height: 100%; margin: 0; padding: 0; }
+    body, html { margin: 0; padding: 0; height: 100%; }
+    #map { width: 100%; height: 100vh; }
+
     .legend {
       background: white;
-      padding: 8px;
+      padding: 10px;
+      line-height: 18px;
+      color: #333;
       font-size: 14px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.4);
       border-radius: 5px;
-    }
-    .legend i {
-      display: inline-block;
-      width: 18px;
-      height: 18px;
-      background: #0000ff;
-      margin-right: 6px;
     }
   </style>
 </head>
 <body>
-  <div id="map"></div>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="script.js"></script>
+
+<div id="map"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+  window.onload = () => {
+    const map = L.map('map').setView([-1.5785, 101.3123], 12);
+
+    // Basemap satelit
+    const esri = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: '© Esri & contributors'
+      }
+    ).addTo(map);
+
+    // Tile Earth Engine terbaru
+    const geeTileUrl = "https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/7e20cbfd7604b78aac9a323e05b86841-6e8478d3c682058ade047e522b5616cd/tiles/{z}/{x}/{y}";
+
+    const geeLayer = L.tileLayer(geeTileUrl, {
+      attribution: "Data: Google Earth Engine",
+      opacity: 1.0
+    }).addTo(map);
+
+    // Legenda
+    L.control({ position: 'bottomright' }).onAdd = () => {
+      const div = L.DomUtil.create('div', 'legend');
+      div.innerHTML = `
+        <strong>Legenda</strong><br>
+        <i style="background:#0000ff;width:18px;height:18px;display:inline-block;margin-right:6px;"></i> Potensi Irigasi
+      `;
+      return div;
+    }.addTo(map);
+  };
+</script>
+
 </body>
 </html>
